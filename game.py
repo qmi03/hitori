@@ -107,11 +107,17 @@ class Hitori:
         visited = [[False]*self.size for _ in range(self.size)]
 
         # Find the first white square
+        start = None
         for i in range(self.size):
             for j in range(self.size):
                 if self.board[i][j].color == Color.WHITE:
                     start = (i, j)
                     break
+            if start is not None:
+                break
+        if start is None:
+            print("No white cell at all")
+            return False
 
         # Define DFS function
         def dfs(i, j):
@@ -143,11 +149,11 @@ class Hitori:
         if not self.rule_2_check():
             print("Rule 2 check failed.")
             return False
-        if not self.rule_3_check():
-            print("Rule 3 check failed.")
-            return False
         if not self.is_fully_shaded():
             print("Not all cells are shaded.")
+            return False
+        if not self.rule_3_check():
+            print("Rule 3 check failed.")
             return False
         print("All checks passed. The board is solved.")
         return True
@@ -167,3 +173,4 @@ game = Hitori(board)
 game.print_board()
 print(game.rule_1_check())
 print(game.rule_2_check())
+game.is_solved()
