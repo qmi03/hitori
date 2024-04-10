@@ -71,14 +71,62 @@ class Hitori:
                         return False
         return True
 
-    
+    def is_fully_shaded(self):
+        for row in range(self.size):
+            for col in range(self.size):
+                if self.board[row][col][1] == 0:
+                    print(f"Cell at ({row+1},{col+1} is still GREY!)")
+                    return False
+        return True
     def rule_3_check(self):
+        # Initialize visited matrix
+        visited = [[False]*self.size for _ in range(self.size)]
+
+        # Find the first white square
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.board[i][j][1] == 1:
+                    start = (i, j)
+                    break
+
+        # Define DFS function
+        def dfs(i, j):
+            if i < 0 or i >= self.size or j < 0 or j >= self.size or visited[i][j] or self.board[i][j][1] != 1:
+                return
+            visited[i][j] = True
+            dfs(i-1, j)
+            dfs(i+1, j)
+            dfs(i, j-1)
+            dfs(i, j+1)
+
+        # Start DFS from the first white square
+        dfs(*start)
+
+        # Check if all white squares have been visited
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.board[i][j][1] == 1 and not visited[i][j]:
+                    print(f"White cell at ({i+1},{j+1}) is not connected to the main white area.")
+                    return False
+
+        return True
 
 
-
-    def is_valid(self):
-        # Add your logic here to check if the current board is a valid Hitori solution
-        pass
+    def is_solved(self):
+        if not self.rule_1_check():
+            print("Rule 1 check failed.")
+            return False
+        if not self.rule_2_check():
+            print("Rule 2 check failed.")
+            return False
+        if not self.rule_3_check():
+            print("Rule 3 check failed.")
+            return False
+        if not self.is_fully_shaded():
+            print("Not all cells are shaded.")
+            return False
+        print("All checks passed. The board is solved.")
+        return True
 
     def solve(self):
         # Add your logic here to solve the Hitori puzzle
