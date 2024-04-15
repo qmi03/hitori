@@ -15,20 +15,13 @@ class Color(Enum):
     BLACK = -1
     GREY = 0
     WHITE = 1
-
-class Cell:
-    def __init__(self, number, color):
-        self.number = number
-        self.color = color
-    def color_to(self,color):
-        self.color = color
-
 class Hitori:
     def __init__(self, board):
         self.size = len(board)
         if not self.is_square(board):
             raise ValueError("The board must be a square.")
-        self.board = [[Cell(num,Color.GREY) for num in row] for row in board]
+        self.board = board
+        self.state = [[Color.WHITE for _ in row] for row in board]
 
     def is_square(self,board):
         return all(len(row) == self.size for row in board)
@@ -41,15 +34,16 @@ class Hitori:
         return True
 
     def print_board(self):
-        for row in self.board:
+        for row in range(self.size):
             printed_row = []
-            for cell in row:
-                if cell.color == Color.BLACK:
-                    printed_row.append(Fore.RED + str(cell.number) + Style.RESET_ALL)
-                elif cell.color == Color.GREY:
-                    printed_row.append(Fore.BLUE + str(cell.number) + Style.RESET_ALL)
-                elif cell.color == Color.WHITE:
-                    printed_row.append(Fore.GREEN + str(cell.number) + Style.RESET_ALL)
+            for col in range(self.size):
+                cell = self.board[row][col]
+                if self.state[row][col] == Color.BLACK:
+                    printed_row.append(Fore.RED + str(cell) + Style.RESET_ALL)
+                elif self.state[row][col] == Color.GREY:
+                    printed_row.append(Fore.BLUE + str(cell) + Style.RESET_ALL)
+                elif self.state[row][col] == Color.WHITE:
+                    printed_row.append(Fore.GREEN + str(cell) + Style.RESET_ALL)
             print(' '.join(printed_row))
 
     def rule_1_check(self):
@@ -62,12 +56,12 @@ class Hitori:
             return True
 
         for row in range(self.size):
-            numbers = [self.board[row][col].number for col in range(self.size) if self.board[row][col].color in [Color.GREY,Color.WHITE]]
+            numbers = [self.board[row][col] for col in range(self.size) if self.state[row][col] in [Color.GREY,Color.WHITE]]
             if not check_numbers(numbers, 'row', row):
                 return False
 
         for col in range(self.size):
-            numbers = [self.board[row][col].number for row in range(self.size) if self.board[row][col].color in [Color.GREY,Color.WHITE]]
+            numbers = [self.board[row][col] for row in range(self.size) if self.state[row][col] in [Color.GREY,Color.WHITE]]
             if not check_numbers(numbers, 'col', col):
                 return False
 
@@ -75,17 +69,17 @@ class Hitori:
 
     def rule_2_check(self):
         def check_shaded_touch(row, col):
-            if self.board[row][col].color == Color.BLACK:
-                if row != (self.size-1) and self.board[row+1][col].color == Color.BLACK:
+            if self.state[row][col] == Color.BLACK:
+                if row != (self.size-1) and self.state[row+1][col] == Color.BLACK:
                     print(f"Shaded squares touch at row {row+1}, col {col+1} and row {row+2}, col {col+1}")
                     return False
-                if row != 0 and self.board[row-1][col].color == Color.BLACK:
+                if row != 0 and self.state[row-1][col] == Color.BLACK:
                     print(f"Shaded squares touch at row {row+1}, col {col+1} and row {row}, col {col+1}")
                     return False
-                if col != (self.size-1) and self.board[row][col+1].color == Color.BLACK:
+                if col != (self.size-1) and self.state[row][col+1] == Color.BLACK:
                     print(f"Shaded squares touch at row {row+1}, col {col+1} and row {row+1}, col {col+2}")
                     return False
-                if col != 0 and self.board[row][col-1].color == Color.BLACK:
+                if col != 0 and self.state[row][col-1] == Color.BLACK:
                     print(f"Shaded squares touch at row {row+1}, col {col+1} and row {row+1}, col {col}")
                     return False
             return True
@@ -95,7 +89,7 @@ class Hitori:
 
     def is_fully_shaded(self):
         def check_grey(row, col):
-            if self.board[row][col].color == Color.GREY:
+            if self.state[row][col] == Color.GREY:
                 print(f"Cell at ({row+1},{col+1} is still GREY!)")
                 return False
             return True
@@ -110,7 +104,7 @@ class Hitori:
         start = None
         for i in range(self.size):
             for j in range(self.size):
-                if self.board[i][j].color == Color.WHITE:
+                if self.state[i][j] == Color.WHITE:
                     start = (i, j)
                     break
             if start is not None:
@@ -121,7 +115,7 @@ class Hitori:
 
         # Define DFS function
         def dfs(i, j):
-            if i < 0 or i >= self.size or j < 0 or j >= self.size or visited[i][j] or self.board[i][j].color != Color.WHITE:
+            if i < 0 or i >= self.size or j < 0 or j >= self.size or visited[i][j] or self.state[i][j] != Color.WHITE:
                 return
             visited[i][j] = True
             dfs(i-1, j)
@@ -135,7 +129,7 @@ class Hitori:
         # Check if all white squares have been visited
         for i in range(self.size):
             for j in range(self.size):
-                if self.board[i][j].color == Color.WHITE and not visited[i][j]:
+                if self.state[i][j] == Color.WHITE and not visited[i][j]:
                     print(f"White cell at ({i+1},{j+1}) is not connected to the main white area.")
                     return False
 
@@ -158,9 +152,11 @@ class Hitori:
         print("All checks passed. The board is solved.")
         return True
 
+    def dfs_solve(self):
+        pass
     def solve(self):
         # Add your logic here to solve the Hitori puzzle
-        pass
+        dfs_solve()
 
 # Initialize a Hitori board
 board = [
