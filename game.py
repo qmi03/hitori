@@ -9,18 +9,23 @@ Each puzzle consists of a square grid with numbers appearing in all squares. The
 """
 from colorama import Fore, Style
 from enum import Enum
+import time
+import os
+import psutil
+import csv
 
 class Color(Enum):
     BLACK = -1
     WHITE = 1
 class Hitori:
-    def __init__(self, board):
+    def __init__(self, board, difficulty):
         self.size = len(board)
         if not self.is_square(board):
             raise ValueError("The board must be a square.")
         self.board = board
         self.state = [[Color.WHITE for _ in row] for row in board]
         self.call = 0
+        self.difficulty = difficulty
         self.log_file = open("hitori_log.txt", "w")
 
     def __del__(self):
@@ -93,6 +98,20 @@ class Hitori:
             return True
 
         return self.iterate_board(check_shaded_touch)
+    def rule_2_check_cell(self,row,col):
+        if row != (self.size-1) and self.state[row+1][col] == Color.BLACK:
+            self.log(f"Shaded squares touch at row {row+1}, col {col+1} and row {row+2}, col {col+1}")
+            return False
+        if row != 0 and self.state[row-1][col] == Color.BLACK:
+            self.log(f"Shaded squares touch at row {row+1}, col {col+1} and row {row}, col {col+1}")
+            return False
+        if col != (self.size-1) and self.state[row][col+1] == Color.BLACK:
+            self.log(f"Shaded squares touch at row {row+1}, col {col+1} and row {row+1}, col {col+2}")
+            return False
+        if col != 0 and self.state[row][col-1] == Color.BLACK:
+            self.log(f"Shaded squares touch at row {row+1}, col {col+1} and row {row+1}, col {col}")
+            return False
+        return True
 
     def rule_3_check(self,state):
         # Initialize visited matrix
@@ -147,51 +166,62 @@ class Hitori:
         print("All checks passed. The board is solved.")
         return True
 
-    def dfs_solve(self, row=0, col=0):
-        # If we have reached the end of the board, check if the current state is a solution
+    def dfs_solve(self, row=0, col=0,depth=0):
+
         print(f"dfs call no.{self.call}")
         self.print_board()
         self.call += 1
+        if depth > self.max_depth_reached:
+            self.max_depth_reached = depth
         if row == self.size:
-            self.log("Reached the end of the board. Checking if the current state is a solution...")
             return self.is_solved()
-        # Calculate the next cell
+
         next_row, next_col = (row + (col + 1) // self.size, (col + 1) % self.size)
+
+        # Kiem tra luat 1 sau khi duyet qua 1 row
         if next_col < col and self.rule_1_check_row(row,self.state): return False
-        # Try to color the cell black
+
         self.state[row][col] = Color.BLACK
-        self.log(f"Trying to color the cell at row {row+1}, col {col+1} black...")
-        if self.rule_2_check(self.state):
-            self.log(f"Cell at row {row+1}, col {col+1} can be black. Moving on to the next cell...")
-            if self.dfs_solve(next_row, next_col):
+        # Kiem tra luat 2 truoc khi quyet dinh to den
+        if self.rule_2_check_cell(row,col):
+            if self.dfs_solve(next_row, next_col,depth+1):
                 return True
 
-        # Try to leave the cell white
         self.state[row][col] = Color.WHITE
-        self.log(f"Trying to leave the cell at row {row+1}, col {col+1} white...")
-        if self.rule_2_check(self.state):
-            self.log(f"Cell at row {row+1}, col {col+1} can be white. Moving on to the next cell...")
-            if self.dfs_solve(next_row, next_col):
-                return True
+        if self.dfs_solve(next_row, next_col,depth+1):
+            return True
 
         return False
 
     def solve(self):
+        start_time = time.time()
+        start_memory = psutil.Process(os.getpid()).memory_info().rss
+
         if self.dfs_solve():
             print("Puzzle solved successfully!")
             self.print_board()
         else:
             print("No solution found.")
-# Initialize a Hitori board
-board = [
-[1, 4, 1, 5, 4] ,
-[4, 3, 1, 2, 5] ,
-[1, 4, 5, 4, 2] ,
-[1, 5, 4, 1, 1] ,
-[5, 2, 1, 4, 1] ,
-]
-print(len(board))
-game = Hitori(board)
-game.print_board()
 
-game.solve()
+        end_time = time.time()
+        end_memory = psutil.Process(os.getpid()).memory_info().rss
+
+        time_taken = end_time - start_time
+        memory_used = end_memory - start_memory
+
+        print(f"Time taken: {time_taken} seconds")
+        print(f"Memory used: {memory_used} MB")
+
+        # Save the results in a CSV file
+        with open(f'hitori_metrics_{self.size}x{self.size}.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([self.size,self.difficulty,self.call, time_taken, memory_used])
+if __name__ == "__main__":
+    board = [
+[1,2,1],
+[2,3,2],
+[3,1,3],
+]
+    difficulty = "Easy"
+    game = Hitori(board, difficulty)
+    game.solve()
