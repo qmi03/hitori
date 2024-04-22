@@ -166,13 +166,11 @@ class Hitori:
         print("All checks passed. The board is solved.")
         return True
 
-    def dfs_solve(self, row=0, col=0,depth=0):
+    def dfs_solve(self, row=0, col=0):
 
         print(f"dfs call no.{self.call}")
         self.print_board()
         self.call += 1
-        if depth > self.max_depth_reached:
-            self.max_depth_reached = depth
         if row == self.size:
             return self.is_solved()
 
@@ -184,11 +182,11 @@ class Hitori:
         self.state[row][col] = Color.BLACK
         # Kiem tra luat 2 truoc khi quyet dinh to den
         if self.rule_2_check_cell(row,col):
-            if self.dfs_solve(next_row, next_col,depth+1):
+            if self.dfs_solve(next_row, next_col):
                 return True
 
         self.state[row][col] = Color.WHITE
-        if self.dfs_solve(next_row, next_col,depth+1):
+        if self.dfs_solve(next_row, next_col):
             return True
 
         return False
@@ -218,9 +216,7 @@ class Hitori:
             writer.writerow([self.size,self.difficulty,self.call, time_taken, memory_used])
 if __name__ == "__main__":
     board = [
-[1,2,1],
-[2,3,2],
-[3,1,3],
+[3, 4, 3, 1, 1], [2, 1, 3, 2, 4], [1, 3, 5, 4, 4], [4, 5, 1, 3, 2], [2, 3, 5, 2, 3]
 ]
     difficulty = "Easy"
     game = Hitori(board, difficulty)
