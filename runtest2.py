@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from game import Hitori
+from dfs import Hitori
 
 # Path to the JSON file
 file_path = 'boards_6x6.json'

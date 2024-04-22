@@ -1,5 +1,5 @@
 import json
-from game import Hitori
+from dfs import Hitori
 # Load the JSON file
 with open('boards_5x5.json', 'r') as f:
     games = json.load(f)
