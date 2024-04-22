@@ -13,6 +13,7 @@ class HitoriPuzzleSolover:
         self.stacks = []
         self.call = 0
         self.difficulty = difficulty
+        self.is_solved = False
         
     def print_array(self, array, step=-1):
         if step == 0:
@@ -204,14 +205,10 @@ class HitoriPuzzleSolover:
         start_time = time.time()
         start_memory = psutil.Process(os.getpid()).memory_info().rss
         self.array = self.explore_and_fill(self.array)
-        end_time = time.time()
-        end_memory = psutil.Process(os.getpid()).memory_info().rss
-
-        time_taken = end_time - start_time
-        memory_used = end_memory - start_memory
-        with open(f'hitori_heuristics_metrics_{self.input_level}x{self.input_level}.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([self.input_level,self.difficulty,self.call, time_taken, memory_used])
+        if self.array is None:
+            self.is_solved = False
+        else:
+            self.is_solved = True
 
 if __name__ == "__main__":
     input_array = [[3, 4, 3, 1, 1], [2, 1, 3, 2, 4], [1, 3, 5, 4, 4], [4, 5, 1, 3, 2], [2, 3, 5, 2, 3]
